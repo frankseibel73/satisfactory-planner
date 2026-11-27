@@ -21,10 +21,11 @@ Python dependencies are reinstalled on start only when `requirements.txt` change
 |---|---|---|
 | `GIT_PULL` (env) | `true` | `false` keeps the current checkout on restart |
 | `REPO_URL` / `REPO_BRANCH` (build arg or env) | this repo / `main` | deploy a fork or another branch |
+| `PUID` / `PGID` (env) | `1000` | owner of saved plan files (match your host user for bind mounts) |
 | `/data/plans` (volume) | | where plan JSON files are stored |
 
-To keep plans in a host folder instead of a named volume, use `-v /path/to/plans:/data/plans`
-(the container runs as a non-root user, so the folder must be writable by it).
+To keep plans in a host folder instead of a named volume, use `-v /path/to/plans:/data/plans`.
+The container takes ownership of that folder on start, then runs the app as an unprivileged user.
 
 ### docker compose
 

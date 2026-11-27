@@ -1,0 +1,10 @@
+services:
+  planner:
+    build: .
+    image: satisfactory-planner
+    ports:
+      - "8080:8000"
+    volumes:
+      # Saved plans are plain JSON files in ./plans on your machine.
+      - ./plans:/data/plans
+    restart: unless-stopped

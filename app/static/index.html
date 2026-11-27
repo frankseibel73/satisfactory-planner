@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Satisfactory Planner</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">Satisfactory Planner</div>
+  <input id="planName" class="plan-name" placeholder="Untitled plan" aria-label="Plan name">
+  <button id="btnSave" class="primary">Save</button>
+  <select id="planList" aria-label="Saved plans"><option value="">Open saved plan…</option></select>
+  <button id="btnNew">New</button>
+  <button id="btnDelete" title="Delete the saved plan with this name">Delete</button>
+  <span class="sep"></span>
+  <button id="btnExport" title="Download this plan as a JSON file">Export JSON</button>
+  <label class="button" title="Load a plan from a JSON file">Import JSON<input id="fileImport" type="file" accept=".json,application/json" hidden></label>
+  <span id="status" class="status" role="status"></span>
+</header>
+
+<main class="layout">
+  <aside class="sidebar">
+    <section>
+      <h2>Products</h2>
+      <div id="targets" class="rows"></div>
+      <button id="addTarget" class="add">+ Add product</button>
+    </section>
+
+    <section>
+      <h2>Supplied inputs <span class="hint">items you already have</span></h2>
+      <div id="inputs" class="rows"></div>
+      <button id="addInput" class="add">+ Add input</button>
+    </section>
+
+    <section>
+      <h2>Optimise for</h2>
+      <select id="objective">
+        <option value="resources">Fewest raw resources (weighted by scarcity)</option>
+        <option value="power">Lowest power</option>
+        <option value="machines">Fewest machines</option>
+      </select>
+      <label class="check"><input type="checkbox" id="limitRaw" checked> Limit raw resources to world totals</label>
+    </section>
+
+    <section class="recipes-section">
+      <h2>Recipes <span id="recipeCount" class="hint"></span></h2>
+      <div class="recipe-tools">
+        <input id="recipeSearch" type="search" placeholder="Search recipes or items…">
+        <select id="recipeFilter">
+          <option value="alt">Alternates</option>
+          <option value="all">All recipes</option>
+          <option value="on">Enabled</option>
+          <option value="off">Disabled</option>
+        </select>
+      </div>
+      <div class="recipe-bulk">
+        <button id="altAll">Enable all alternates</button>
+        <button id="altReset">Reset to defaults</button>
+      </div>
+      <div id="recipeList" class="recipe-list"></div>
+    </section>
+  </aside>
+
+  <section class="results">
+    <div id="message" class="message" hidden></div>
+    <div id="summary" class="summary"></div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="graph" class="active">Graph</button>
+      <button role="tab" data-tab="machines">Machines</button>
+      <button role="tab" data-tab="items">Items</button>
+    </nav>
+    <div id="tab-graph" class="tab active">
+      <div class="graph-tools"><button id="fitGraph">Fit</button><span class="hint">Drag to pan, scroll to zoom</span></div>
+      <svg id="graph" class="graph"></svg>
+    </div>
+    <div id="tab-machines" class="tab"><table id="machinesTable" class="table"></table></div>
+    <div id="tab-items" class="tab"><table id="itemsTable" class="table"></table></div>
+  </section>
+</main>
+
+<datalist id="itemNames"></datalist>
+<script src="/static/app.js"></script>
+</body>
+</html>

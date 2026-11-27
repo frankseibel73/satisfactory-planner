@@ -71,7 +71,11 @@ def save_plan(plan: dict):
     plan = {**plan, "name": name, "version": 1,
             "updated": datetime.now(timezone.utc).isoformat(timespec="seconds")}
     plan.pop("result", None)
-    _path(slug).write_text(json.dumps(plan, indent=2), encoding="utf-8")
+    try:
+        _path(slug).write_text(json.dumps(plan, indent=2), encoding="utf-8")
+    except OSError as e:
+        raise HTTPException(500, f"Couldn't write to the plans folder ({PLANS_DIR}): {e.strerror}. "
+                                 "Check that the folder mounted at /data/plans is writable.") from e
     return {"id": slug, "updated": plan["updated"]}
 
 
@@ -80,7 +84,10 @@ def delete_plan(slug: str):
     path = _path(slug)
     if not path.exists():
         raise HTTPException(404, "Plan not found.")
-    path.unlink()
+    try:
+        path.unlink()
+    except OSError as e:
+        raise HTTPException(500, f"Couldn't delete the plan file: {e.strerror}.") from e
     return {"ok": True}
 
 

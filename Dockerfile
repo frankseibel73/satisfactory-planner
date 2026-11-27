@@ -8,6 +8,7 @@
 #
 # Restart the container to pick up the latest commit: docker restart planner
 # Set GIT_PULL=false to stay on the current checkout; REPO_URL / REPO_BRANCH to use a fork.
+# Set PUID / PGID to make saved plan files owned by a specific host user (default 1000).
 
 FROM python:3.12-slim
 
@@ -33,6 +34,22 @@ RUN apt-get update \
 COPY --chmod=755 <<'EOF' /usr/local/bin/start-planner
 #!/bin/sh
 set -e
+
+# Starts as root only to fix ownership (bind-mounted plan folders are often
+# root-owned), then re-runs itself as the unprivileged 'planner' user.
+if [ "$(id -u)" = "0" ]; then
+  if [ -n "$PGID" ] && [ "$PGID" != "$(id -g planner)" ]; then groupmod -o -g "$PGID" planner; fi
+  if [ -n "$PUID" ] && [ "$PUID" != "$(id -u planner)" ]; then usermod -o -u "$PUID" planner; fi
+  if [ "$(stat -c %u:%g /srv/venv)" != "$(id -u planner):$(id -g planner)" ]; then
+    echo "Updating ownership of /srv for uid $(id -u planner)"
+    chown -R planner:planner /srv
+  fi
+  mkdir -p "$PLANS_DIR"
+  chown -R planner:planner "$PLANS_DIR" \
+    || echo "WARNING: couldn't change ownership of $PLANS_DIR; saving plans may fail" >&2
+  exec setpriv --reuid=planner --regid=planner --init-groups "$0" "$@"
+fi
+
 cd /srv
 
 if [ ! -d app/.git ]; then
@@ -69,6 +86,8 @@ RUN python -m venv /srv/venv \
  && pip install --no-cache-dir -r app/requirements.txt \
  && sha256sum app/requirements.txt | cut -d' ' -f1 > venv/.requirements-hash
 
+# The start script drops back to 'planner' after fixing folder ownership.
+USER root
 EXPOSE 8000
 VOLUME ["/data/plans"]
 CMD ["start-planner"]

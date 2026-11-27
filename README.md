@@ -4,16 +4,43 @@ A self-hosted production planner for Satisfactory, in the spirit of satisfactory
 Pick products and rates; a linear-programming solver chooses recipes and reports machines, power,
 raw resources, byproducts and a production graph. Plans save as JSON files.
 
-## Run
+## Deploy (Dockerfile only)
+
+The Dockerfile is self-contained: it clones this repo when the image is built and runs `git pull`
+every time the container starts. On any server with Docker, copy just the `Dockerfile` and run:
 
 ```sh
-docker compose up -d --build
+docker build -t satisfactory-planner .
+docker run -d --name planner -p 8080:8000 -v planner-plans:/data/plans --restart unless-stopped satisfactory-planner
 ```
 
-Open http://localhost:8080. Plans are saved to `./plans/<name>.json` on the host (bind-mounted into the
-container). Open one directly with `http://localhost:8080/?plan=<name>`.
+Open http://<server>:8080. To update to the latest commit: `docker restart planner`.
+Python dependencies are reinstalled on start only when `requirements.txt` changes.
 
-You can also **Export JSON** / **Import JSON** to move plans around as files from the browser.
+| Setting | Default | Purpose |
+|---|---|---|
+| `GIT_PULL` (env) | `true` | `false` keeps the current checkout on restart |
+| `REPO_URL` / `REPO_BRANCH` (build arg or env) | this repo / `main` | deploy a fork or another branch |
+| `/data/plans` (volume) | | where plan JSON files are stored |
+
+To keep plans in a host folder instead of a named volume, use `-v /path/to/plans:/data/plans`
+(the container runs as a non-root user, so the folder must be writable by it).
+
+### docker compose
+
+`docker compose up -d --build` does the same, saving plans to `./plans` next to the compose file.
+Note that the container runs the code **from GitHub**, not your local working copy: push changes, then
+`docker compose restart`.
+
+Open a saved plan directly with `http://localhost:8080/?plan=<name>`. You can also **Export JSON** /
+**Import JSON** to move plans around as files from the browser.
+
+## Run locally without Docker
+
+```sh
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8080
+```
 
 ## Features
 
